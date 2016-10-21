@@ -14,13 +14,9 @@ public class CaptainsMess : MonoBehaviour
     public CaptainsMessListener listener;
     public bool verboseLogging = false;
     public bool useDebugGUI = true;
+    public bool forceServer = false;
 
     private CaptainsMessNetworkManager networkManager;
-
-    void OnLevelWasLoaded(int levelIndex)
-    {
-        Debug.Log("!!! LEVEL LOAD !!!");
-    }
 
     public void Awake()
     {
@@ -38,6 +34,7 @@ public class CaptainsMess : MonoBehaviour
             networkManager.minPlayers = minPlayers;
             networkManager.SetMaxPlayers(maxPlayers); //Setting maxPlayers and maxConnections
             networkManager.allReadyCountdownDuration = countdownDuration;
+            networkManager.forceServer = forceServer;
 
             // I'm just using a single scene for everything
             networkManager.offlineScene = "";
@@ -60,7 +57,7 @@ public class CaptainsMess : MonoBehaviour
 
     public void ValidateConfig()
     {
-        if (broadcastIdentifier == "Spaceteam")
+        if (broadcastIdentifier == "Spaceteam" && !Application.bundleIdentifier.Contains("com.sleepingbeastgames"))
         {
             Debug.LogError("#CaptainsMess# You should pick a unique Broadcast Identifier for your game", this);
         }
@@ -99,18 +96,21 @@ public class CaptainsMess : MonoBehaviour
 
     public void AutoConnect()
     {
+        networkManager.InitNetworkTransport();
         networkManager.minPlayers = minPlayers;
         networkManager.AutoConnect();
     }
 
     public void StartHosting()
     {
+        networkManager.InitNetworkTransport();
         networkManager.minPlayers = minPlayers;
         networkManager.StartHosting();
     }
 
     public void StartJoining()
     {
+        networkManager.InitNetworkTransport();
         networkManager.minPlayers = minPlayers;
         networkManager.StartJoining();
     }
@@ -118,6 +118,7 @@ public class CaptainsMess : MonoBehaviour
     public void Cancel()
     {
         networkManager.Cancel();
+        networkManager.ShutdownNetworkTransport();
     }
 
     public bool AreAllPlayersReady()
@@ -132,6 +133,7 @@ public class CaptainsMess : MonoBehaviour
 
     public void StartLocalGameForDebugging()
     {
+        networkManager.InitNetworkTransport();
         networkManager.minPlayers = 1;
         networkManager.StartLocalGameForDebugging();
     }
@@ -144,5 +146,26 @@ public class CaptainsMess : MonoBehaviour
     public bool IsHost()
     {
         return networkManager.IsHost();
+    }
+
+    public void FinishGame()
+    {
+        networkManager.FinishGame();
+    }
+
+    public void SetForceServer(bool fs)
+    {
+        forceServer = fs;
+        networkManager.forceServer = fs;
+    }
+
+    public void SetPrivateTeamKey(string key)
+    {
+        networkManager.SetPrivateTeamKey(key);
+    }
+
+    public int HighestConnectedVersion()
+    {
+        return networkManager.HighestConnectedVersion();
     }
 }
